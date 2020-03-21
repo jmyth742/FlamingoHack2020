@@ -12,6 +12,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+
+import flamingo.flamingo_api.FlamingoManager;
+
 public class MainActivity extends Activity implements SensorEventListener {
 
     private SensorManager sensorManager;
