@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "147030223419",
+    "firebase_url": "https://flamingohackathon2020.firebaseio.com",
+    "project_id": "flamingohackathon2020",
+    "storage_bucket": "flamingohackathon2020.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:147030223419:android:1acb5fbb182b11b15d4a1e",
+        "android_client_info": {
+          "package_name": "com.example.flamingohackathon2020"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "147030223419-u0sh9k1522umgjo9tnjs4svbd9e54661.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAo6rLsGbp-rRb4Cxkcf_vCNaS_trMqptg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "147030223419-u0sh9k1522umgjo9tnjs4svbd9e54661.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
