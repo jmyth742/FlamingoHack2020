@@ -7,6 +7,6 @@
         android:bottomRightRadius="0dp"
         android:bottomLeftRadius="0dp" />
     <stroke
-        android:width="1dp"
-        android:color="@android:color/white" />
+        android:width="5dp"
+        android:color="@android:color/holo_green_light" />
 </shape>

@@ -32,8 +32,10 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.hardware.SensorManager.SENSOR_DELAY_GAME
+import android.view.ViewGroup
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import kotlinx.android.synthetic.main.bounding_box.*
 
 class Camera:
         AppCompatActivity(), SensorEventListener {
@@ -77,6 +79,17 @@ class Camera:
         magnetometer = sensorManager.getDefaultSensor(TYPE_MAGNETIC_FIELD)
 
         usersDBHelper = UsersDBHelper(this)
+
+        //***********************************
+        // DYNAMIC BOUNDING BOX
+        boundingBox.x = 400f
+        boundingBox.y = 500f
+
+        var params = boundingBox.layoutParams;
+        params.height = 230
+        params.width = 20
+        boundingBox.setLayoutParams(params);
+        ///*************************************
 
 //        myRef.setValue("hello,world")
 //        myRef.addValueEventListener(object : ValueEventListener {
