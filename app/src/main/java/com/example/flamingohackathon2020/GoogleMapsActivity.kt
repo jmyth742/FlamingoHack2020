@@ -92,6 +92,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnCamera
     }
 
     fun populateMap(){
+
+        Log.v("Flamingo","populating map with " + objects.count().toString() + " objects")
         mMap.clear()
 
         for(point in objects){

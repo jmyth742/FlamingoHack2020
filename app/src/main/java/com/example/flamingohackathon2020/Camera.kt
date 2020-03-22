@@ -355,6 +355,7 @@ class Camera:
     fun switchView(view:View){
         val intent = Intent(this, MapsActivity::class.java)
         this.flamingoManager?.stopFlamingoService()
+        intent.putExtra("list",this.objects.toTypedArray())
         startActivity(intent)
 
     }
