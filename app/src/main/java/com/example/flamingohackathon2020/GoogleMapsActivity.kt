@@ -17,7 +17,6 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import flamingo.flamingo_api.FlamingoLocationListener
 import flamingo.flamingo_api.FlamingoManager
 import flamingo.flamingo_api.utils.ReferenceStationStatus
 
@@ -33,10 +32,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnCamera
 
     val requestCode = 123
 
+    var objects:MutableList<RandomObject> = mutableListOf()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+
+        this.objects = (intent.getSerializableExtra("list") as? Array<RandomObject>)?.toMutableList() ?: mutableListOf()
 
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
@@ -134,6 +137,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnCamera
     fun switchView(view:View){
         val intent = Intent(this, Camera::class.java)
         this.flamingoManager?.stopFlamingoService()
+        intent.putExtra("list",objects.toTypedArray())
         startActivity(intent)
 
     }

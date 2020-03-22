@@ -57,6 +57,8 @@ class Camera:
     var lastAccelerometerSet = false
     var lastMagnetometerSet = false
 
+    var objects:MutableList<RandomObject> = mutableListOf()
+
     var TAG: String = "Flamingo"
     var bottom = 0
     var left = 0
@@ -79,6 +81,8 @@ class Camera:
         magnetometer = sensorManager.getDefaultSensor(TYPE_MAGNETIC_FIELD)
 
         usersDBHelper = UsersDBHelper(this)
+
+        this.objects = (intent.getSerializableExtra("list") as? Array<RandomObject>)?.toMutableList() ?: mutableListOf()
 
         //***********************************
         // DYNAMIC BOUNDING BOX
@@ -335,6 +339,7 @@ class Camera:
     fun switchView(view:View){
         val intent = Intent(this, MapsActivity::class.java)
         this.flamingoManager?.stopFlamingoService()
+        intent.putExtra("list",objects.toTypedArray())
         startActivity(intent)
 
     }
