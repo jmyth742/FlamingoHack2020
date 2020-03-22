@@ -100,6 +100,11 @@ class Camera:
             }
         }
 
+        setUpFlamingo()
+
+    }
+
+    fun setUpFlamingo(){
         //Flamingo
 
 
@@ -145,7 +150,6 @@ class Camera:
         val new_coordinates = CoordinateFinder(52.52316261666667,13.422810166666666).newCoordinate(0.0,0.01)
         Log.v(TAG,"NEW COORDINATES -> " + new_coordinates.toString())
         this.flamingoManager = flamingoManager
-
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -321,6 +325,7 @@ class Camera:
         startActivity(intent)
 
     }
+
 
 
 
