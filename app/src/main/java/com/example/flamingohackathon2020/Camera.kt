@@ -36,6 +36,7 @@ import android.view.ViewGroup
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.bounding_box.*
+import java.util.*
 
 class Camera:
         AppCompatActivity(), SensorEventListener {
@@ -59,6 +60,7 @@ class Camera:
 
     var objects:MutableList<RandomObject> = mutableListOf()
 
+
     var TAG: String = "Flamingo"
     var bottom = 0
     var left = 0
@@ -74,6 +76,7 @@ class Camera:
     var width = 0
     var height = 0
 
+    var i = 0
 
 
     //lat: 52.52316261666667 lon: 13.422810166666666
@@ -98,20 +101,6 @@ class Camera:
         boundingBox.setLayoutParams(params);
         ///*************************************
 
-//        myRef.setValue("hello,world")
-//        myRef.addValueEventListener(object : ValueEventListener {
-//            override fun onDataChange(dataSnapshot: DataSnapshot) {
-//                // This method is called once with the initial value and again
-//                // whenever data at this location is updated.
-//                val value = dataSnapshot.getValue<String>()
-//                Log.d(TAG, "Value is: $value")
-//            }
-//
-//            override fun onCancelled(error: DatabaseError) {
-//                // Failed to read value
-//                Log.w(TAG, "Failed to read value.", error.toException())
-//            }
-//        })
 
         cameraView.setLifecycleOwner(this)
         cameraView.addFrameProcessor {
@@ -136,6 +125,7 @@ class Camera:
         setUpFlamingo()
 
     }
+
 
     fun setUpFlamingo(){
         //Flamingo
@@ -285,6 +275,8 @@ class Camera:
         if(img == null){
             return
         }
+        var rand = RandomObject(0.0,0.0,"test","test","20",0.0)
+
 
         objectDetector.processImage(img!!)
         //objectDetector.processImage(getBitmapImg(frame))
@@ -304,6 +296,7 @@ class Camera:
 //                        runOnUiThread { updateBox() }
 
                     }
+                    i++
                     if (result.equals("0"))
                         result = "Unknown"
                     if (result.equals("1"))
@@ -317,6 +310,13 @@ class Camera:
                     if (result.equals("5"))
                         result = "Plants"
 
+                    rand.latitude = 0.0
+                    rand.longitude = 0.0
+                    rand.height = 0.0
+                    rand.id = i.toString()
+                    rand.type = result
+                    rand.owner = "Flamingo"
+                    objects.add(rand)
                     callback(result)
                 }
                 .addOnFailureListener {
