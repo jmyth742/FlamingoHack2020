@@ -1,30 +1,30 @@
 package com.example.flamingohackathon2020
 
+
+import android.Manifest
 import android.content.Context
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-import android.util.Log
-import com.google.firebase.ml.vision.FirebaseVision
-import com.google.firebase.ml.vision.common.FirebaseVisionImage
-import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata
-import com.google.firebase.ml.vision.objects.FirebaseVisionObject
-import com.google.firebase.ml.vision.objects.FirebaseVisionObjectDetector
-import com.google.firebase.ml.vision.objects.FirebaseVisionObjectDetectorOptions
-import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer
-import com.otaliastudios.cameraview.Frame
-import kotlinx.android.synthetic.main.activity_camera.*
-
-import android.graphics.*
-
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.graphics.RectF
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.ShapeDrawable
-import android.graphics.drawable.shapes.RectShape
+import android.graphics.Rect
+import android.os.Bundle
+import android.os.Looper
+import android.util.Log
+import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.google.firebase.ml.vision.FirebaseVision
+import com.google.firebase.ml.vision.common.FirebaseVisionImage
+import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata
+import com.google.firebase.ml.vision.objects.FirebaseVisionObjectDetectorOptions
+import com.otaliastudios.cameraview.Frame
+import flamingo.flamingo_api.FlamingoManager
+import flamingo.flamingo_api.utils.ReferenceStationStatus
+import kotlinx.android.synthetic.main.activity_camera.*
 import android.hardware.Sensor
 import android.hardware.Sensor.TYPE_ACCELEROMETER
 import android.hardware.Sensor.TYPE_MAGNETIC_FIELD
@@ -32,21 +32,8 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.hardware.SensorManager.SENSOR_DELAY_GAME
-import android.util.AttributeSet
-import android.view.GestureDetector
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroupOverlay
-import android.widget.FrameLayout
-import androidx.core.view.GestureDetectorCompat
-import com.google.android.gms.vision.CameraSource
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
-import com.otaliastudios.cameraview.CameraView
-import kotlin.random.Random
 
 class Camera:
         AppCompatActivity(), SensorEventListener {
@@ -56,17 +43,11 @@ class Camera:
 
     val myRef = database.getReference("message")
 
-
-
     lateinit var sensorManager: SensorManager
     lateinit var accelerometer: Sensor
     lateinit var magnetometer: Sensor
 
     lateinit var usersDBHelper : UsersDBHelper
-
-
-
-
 
     var currentDegree = 0.0f
     var lastAccelerometer = FloatArray(3)
@@ -74,13 +55,19 @@ class Camera:
     var lastAccelerometerSet = false
     var lastMagnetometerSet = false
 
-
+    var TAG: String = "Flamingo"
     var bottom = 0
     var left = 0
     var right = 0
     var top = 0
     var label = ""
 
+    val requestCode = 123
+
+    val flamingoListener:GNSSListener = GNSSListener()
+    var flamingoManager:FlamingoManager? = null
+
+    //lat: 52.52316261666667 lon: 13.422810166666666
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -112,9 +99,90 @@ class Camera:
                 tvDetectedObject.text = result
             }
         }
+
+        //Flamingo
+
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+                != PackageManager.PERMISSION_GRANTED) {
+            // We do not have this permission. Let's ask the user
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_PHONE_STATE),456);
+        }
+
+        ActivityCompat.requestPermissions(this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                requestCode)
+
+
+
+
+        val flamingoManager = FlamingoManager(this, arrayListOf(flamingoListener))
+        val applicationId = getString(R.string.applicationId)
+        val password = getString(R.string.password)
+        val companyId = getString(R.string.companyId)
+
+        flamingoListener.mContext = this
+
+        flamingoManager.addFlamingoListener(flamingoListener)
+
+        flamingoManager.registerFlamingoService(applicationId, password, companyId,flamingoListener)
+
+        Log.v(TAG,flamingoManager.positioningSession.toString())
+
+
+        Log.v(TAG, "FLAMINGO REFERENCE STATION STATUS -> " + flamingoManager.referenceStationStatus.toString())
+        Log.v(TAG, "FLAMINGO REGISTRATION STATION STATUS -> " + flamingoManager.registrationStatus.toString())
+
+        var counter = 0
+        while (flamingoManager.referenceStationStatus != ReferenceStationStatus.AVAILABLE && counter < 10){
+            Log.v(TAG,"repeat")
+            flamingoManager.registerFlamingoService(applicationId, password, companyId,flamingoListener)
+            Thread.sleep(500)
+            counter += 1
+        }
+
+        //test the distance
+        val new_coordinates = CoordinateFinder(52.52316261666667,13.422810166666666).newCoordinate(0.0,0.01)
+        Log.v(TAG,"NEW COORDINATES -> " + new_coordinates.toString())
+        this.flamingoManager = flamingoManager
+
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        when (requestCode) {
+            this.requestCode -> {
+                // If request is cancelled, the result arrays are empty.
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                    Log.d(TAG,"FINE LOCATION PERMISSION GRANTED")
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return
+            }
 
+            456 -> {
+                // If request is cancelled, the result arrays are empty.
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                    Log.d(TAG,"READ PHONE STATE PERMISSION GRANTED")
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return
+            }
+
+            // Add other 'when' lines to check for other
+            // permissions this app might request.
+            else -> {
+                // Ignore all other requests.
+            }
+        }
+    }
 
     override fun onResume() {
         super.onResume()
@@ -211,7 +279,7 @@ class Camera:
                     //age = object pos absolute extrapolated from distance from camera
                     //will need to change this on update of new object which is not unknown
 
-                        Log.d("DB-Update","updating db - not unknown")
+                        //Log.d("DB-Update","updating db - not unknown")
 
                     callback(result)
                 }
@@ -247,21 +315,13 @@ class Camera:
         return dist
     }
 
+    fun switchView(view:View){
+        val intent = Intent(this, MapsActivity::class.java)
+        this.flamingoManager?.stopFlamingoService()
+        startActivity(intent)
+
+    }
+
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

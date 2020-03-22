@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">FlamingoHackathon2020</string>
+    <string name="applicationId">huser7</string>
+    <string name="password">rM9MFgKsqJJrH4rm</string>
+    <string name="companyId">hackathon</string>
+    <string name="google_maps_key">AIzaSyASQPNFLv4JrOTSNQxZF7eaJEQd1VwjLgI</string>
 </resources>
