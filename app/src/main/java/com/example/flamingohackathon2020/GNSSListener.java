@@ -1,10 +1,16 @@
 package com.example.flamingohackathon2020;
 
+import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
 
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import flamingo.flamingo_api.FlamingoLocation;
 import flamingo.flamingo_api.FlamingoLocationListener;
@@ -14,7 +20,8 @@ public class GNSSListener extends AppCompatActivity implements FlamingoLocationL
 
     private double latitude = 0.0f;
     private double longitude = 0.0f;
-    Camera mContext;
+    Context mContext;
+    GoogleMap map = null;
 
     boolean locationReady = false;
 
@@ -39,6 +46,16 @@ public class GNSSListener extends AppCompatActivity implements FlamingoLocationL
         locationReady = true;
         String text = "new pair of location data lat: " + String.valueOf(latitude) + " lon: " + String.valueOf(longitude);
         Log.v("Flamingo",text);
+
+        if(map != null){
+            LatLng bln = new LatLng(latitude, longitude);
+            MarkerOptions marker = new MarkerOptions();
+            marker.title("Marker in Berlin");
+            marker.position(bln);
+            marker.snippet("");
+            map.addMarker(marker);
+            map.moveCamera(CameraUpdateFactory.newLatLng(bln));
+        }
     }
 
     @Override
