@@ -48,6 +48,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth:19.3.0'
 
     implementation 'com.otaliastudios:cameraview:2.0.0-beta04'
+    implementation 'com.google.firebase:firebase-database-ktx:19.2.1'
+
 
     implementation 'com.google.firebase:firebase-ml-vision:24.0.1'
     implementation 'com.google.firebase:firebase-ml-vision-object-detection-model:19.0.3'

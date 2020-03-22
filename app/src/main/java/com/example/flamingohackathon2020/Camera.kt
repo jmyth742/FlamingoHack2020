@@ -3,6 +3,7 @@ package com.example.flamingohackathon2020
 
 import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -44,6 +45,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroupOverlay
 import android.widget.FrameLayout
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.GestureDetectorCompat
 import com.google.android.gms.vision.CameraSource
 import com.google.firebase.database.DataSnapshot
@@ -61,8 +64,6 @@ class Camera:
     val database = Firebase.database
 
     val myRef = database.getReference("message")
-
-class Camera: AppCompatActivity() {
 
 
     lateinit var sensorManager: SensorManager
@@ -327,6 +328,3 @@ class Camera: AppCompatActivity() {
         return dist
     }
 
-
-
-}
