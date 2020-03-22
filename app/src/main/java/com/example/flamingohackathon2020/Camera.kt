@@ -2,17 +2,9 @@ package com.example.flamingohackathon2020
 
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
 import android.os.Bundle
-import android.os.Looper
 import android.util.Log
-import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -26,9 +18,6 @@ import flamingo.flamingo_api.FlamingoManager
 import flamingo.flamingo_api.utils.ReferenceStationStatus
 import kotlinx.android.synthetic.main.activity_camera.*
 import kotlinx.android.synthetic.main.activity_main.*
-import java.util.*
-
-import android.graphics.*
 
 import android.graphics.Canvas
 import android.graphics.Color
@@ -46,36 +35,19 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.hardware.SensorManager.SENSOR_DELAY_GAME
-import android.util.AttributeSet
-import android.view.GestureDetector
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroupOverlay
-import android.widget.FrameLayout
-import androidx.core.view.GestureDetectorCompat
-import com.google.android.gms.vision.CameraSource
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.ValueEventListener
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
-import com.otaliastudios.cameraview.CameraView
-import kotlin.random.Random
+
 
 class Camera:
         AppCompatActivity(), SensorEventListener {
-
-
-    val database = Firebase.database
-
-    val myRef = database.getReference("message")
-
 
     lateinit var sensorManager: SensorManager
     lateinit var accelerometer: Sensor
     lateinit var magnetometer: Sensor
 
     lateinit var usersDBHelper: UsersDBHelper
+
+    var mHeight = 2248
+    var mWidth = 1080
 
 
     var currentDegree = 0.0f
@@ -96,7 +68,11 @@ class Camera:
     val flamingoListener: GNSSListener = GNSSListener()
     var flamingoManager:FlamingoManager? = null
 
-    //lat: 52.52316261666667 lon: 13.422810166666666
+
+    private var bitmap: Bitmap = Bitmap.createBitmap(mWidth,mHeight,Bitmap.Config.ARGB_8888)
+    private val canvas: Canvas = Canvas(bitmap)
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,23 +80,9 @@ class Camera:
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(TYPE_ACCELEROMETER)
         magnetometer = sensorManager.getDefaultSensor(TYPE_MAGNETIC_FIELD)
+        var shapeDrawable: ShapeDrawable
 
-        usersDBHelper = UsersDBHelper(this)
 
-//        myRef.setValue("hello,world")
-//        myRef.addValueEventListener(object : ValueEventListener {
-//            override fun onDataChange(dataSnapshot: DataSnapshot) {
-//                // This method is called once with the initial value and again
-//                // whenever data at this location is updated.
-//                val value = dataSnapshot.getValue<String>()
-//                Log.d(TAG, "Value is: $value")
-//            }
-//
-//            override fun onCancelled(error: DatabaseError) {
-//                // Failed to read value
-//                Log.w(TAG, "Failed to read value.", error.toException())
-//            }
-//        })
 
         cameraView.setLifecycleOwner(this)
         cameraView.addFrameProcessor {
@@ -285,32 +247,23 @@ class Camera:
                         left = bounding.left
                         right = bounding.right
                         top = bounding.top
+
+                        var width = left - right
+                        var height = top - bottom
+                        Log.d("image dims", " " + width + " " + height)
                     }
                     if (result.equals("0"))
                         result = "Unknown"
                     if (result.equals("1"))
-                    //usersDBHelper.insertUser(UserModel(userid = result, name = result, age = result))
                         result = "Home Goods"
                     if (result.equals("2"))
-                    //usersDBHelper.insertUser(UserModel(userid = result, name = result, age = result))
                         result = "Fashion"
                     if (result.equals("3"))
-                    //usersDBHelper.insertUser(UserModel(userid = result, name = result, age = result))
                         result = "Food"
                     if (result.equals("4"))
-                    //usersDBHelper.insertUser(UserModel(userid = result, name = result, age = result))
                         result = "Place"
                     if (result.equals("5"))
-                    //usersDBHelper.insertUser(UserModel(userid = result, name = result, age = result))
                         result = "Plants"
-
-
-                    //user id is pos of object
-                    //name = result which is typ
-                    //age = object pos absolute extrapolated from distance from camera
-                    //will need to change this on update of new object which is not unknown
-
-                    Log.d("DB-Update", "updating db - not unknown")
 
                     callback(result)
                 }
@@ -318,6 +271,8 @@ class Camera:
                     callback("Unable to detect an object")
                 }
     }
+
+
 
 
     private fun getVisionImageFromFrame(frame: Frame): FirebaseVisionImage {
