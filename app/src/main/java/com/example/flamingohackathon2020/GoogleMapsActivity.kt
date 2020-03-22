@@ -23,7 +23,6 @@ import flamingo.flamingo_api.utils.ReferenceStationStatus
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnCameraMoveListener {
 
-
     private lateinit var mMap: GoogleMap
     var tracker:GNSSListener = GNSSListener()
     var flamingoManager:FlamingoManager? = null
@@ -92,6 +91,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnCamera
         this.flamingoManager = flamingoManager
     }
 
+    fun populateMap(){
+        mMap.clear()
+
+        for(point in objects){
+            val bln = LatLng(point.latitude, point.longitude)
+            var marker = MarkerOptions()
+            marker.title(point.type)
+            marker.position(bln)
+            marker.snippet(point.id)
+            mMap.addMarker(marker)
+        }
+    }
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
@@ -100,14 +111,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnCamera
 
         setUpFlamingo()
 
-        // Add a marker in Sydney and move the camera
-        val bln = LatLng(52.52316261666667, 13.422810166666666)
-        var marker = MarkerOptions()
-        marker.title("Marker in Berlin")
-        marker.position(bln)
-        marker.snippet("")
-        mMap.addMarker(marker)
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(bln))
+        populateMap()
 
         mMap.setMyLocationEnabled(true);
 

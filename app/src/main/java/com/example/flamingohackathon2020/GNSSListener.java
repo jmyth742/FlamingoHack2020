@@ -83,6 +83,7 @@ public class GNSSListener extends AppCompatActivity implements FlamingoLocationL
         runOnUiThread(() -> Toast.makeText(mContext.getApplicationContext(), toast, Toast.LENGTH_SHORT).show());
     }
 
+
     void updateMap(){
         if(map != null){
             LatLng bln = new LatLng(latitude, longitude);

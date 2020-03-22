@@ -263,7 +263,14 @@ class Camera:
 
 
         val objectDetector = FirebaseVision.getInstance().getOnDeviceObjectDetector(options)
-        objectDetector.processImage(getVisionImageFromFrame(frame))
+
+        val img = getVisionImageFromFrame(frame)
+
+        if(img == null){
+            return
+        }
+
+        objectDetector.processImage(img!!)
         //objectDetector.processImage(getBitmapImg(frame))
                 .addOnSuccessListener {
                     var result = ""
@@ -311,7 +318,12 @@ class Camera:
 
 
 
-    private fun getVisionImageFromFrame(frame : Frame) : FirebaseVisionImage{
+    private fun getVisionImageFromFrame(frame : Frame) : FirebaseVisionImage?{
+
+        if (frame.data == null){
+            return null
+        }
+
         //ByteArray for the captured frame
         val data = frame.data
 
