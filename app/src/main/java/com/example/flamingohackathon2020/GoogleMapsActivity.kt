@@ -85,8 +85,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnCamera
         }
 
         //test the distance
-        val new_coordinates = CoordinateFinder(52.52316261666667,13.422810166666666).newCoordinate(0.0,0.01)
-        Log.v(TAG,"NEW COORDINATES -> " + new_coordinates.toString())
+        val new_coordinates = CoordinateFinder(52.52316261666667,13.422810166666666).newCoordinate(0.0,0.001)
+        //Log.v(TAG,"NEW COORDINATES -> " + new_coordinates.toString())
 
         this.flamingoManager = flamingoManager
     }

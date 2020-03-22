@@ -310,9 +310,10 @@ class Camera:
                     if (result.equals("5"))
                         result = "Plants"
 
-                    rand.latitude = 0.0
-                    rand.longitude = 0.0
-                    rand.height = 0.0
+                    val new_coordinates = CoordinateFinder(flamingoListener.location.first,flamingoListener.location.second).newCoordinate(currentDegree.toDouble(),0.001)
+                    rand.latitude = new_coordinates.first
+                    rand.longitude = new_coordinates.second
+                    rand.height = 1.0
                     rand.id = i.toString()
                     rand.type = result
                     rand.owner = "Flamingo"
