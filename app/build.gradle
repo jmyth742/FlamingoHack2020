@@ -48,6 +48,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-ml-vision-object-detection-model:19.0.3'
     implementation 'com.google.firebase:firebase-ml-vision-image-label-model:19.0.0'
 
+    implementation 'com.google.firebase:firebase-database-ktx:19.2.1'
+
 
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"

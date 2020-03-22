@@ -14,8 +14,6 @@ import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer
 import com.otaliastudios.cameraview.Frame
 import kotlinx.android.synthetic.main.activity_camera.*
 
-
-
 import android.graphics.*
 
 import android.graphics.Canvas
@@ -27,15 +25,54 @@ import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.RectShape
+import android.hardware.Sensor
+import android.hardware.Sensor.TYPE_ACCELEROMETER
+import android.hardware.Sensor.TYPE_MAGNETIC_FIELD
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import android.hardware.SensorManager.SENSOR_DELAY_GAME
 import android.util.AttributeSet
+import android.view.GestureDetector
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroupOverlay
 import android.widget.FrameLayout
+import androidx.core.view.GestureDetectorCompat
 import com.google.android.gms.vision.CameraSource
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import com.otaliastudios.cameraview.CameraView
+import kotlin.random.Random
 
-class Camera: AppCompatActivity() {
+class Camera:
+        AppCompatActivity(), SensorEventListener {
 
+
+    val database = Firebase.database
+
+    val myRef = database.getReference("message")
+
+
+
+    lateinit var sensorManager: SensorManager
+    lateinit var accelerometer: Sensor
+    lateinit var magnetometer: Sensor
+
+    lateinit var usersDBHelper : UsersDBHelper
+
+
+
+
+
+    var currentDegree = 0.0f
+    var lastAccelerometer = FloatArray(3)
+    var lastMagnetometer = FloatArray(3)
+    var lastAccelerometerSet = false
+    var lastMagnetometerSet = false
 
 
     var bottom = 0
@@ -48,11 +85,82 @@ class Camera: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
+        sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+        accelerometer = sensorManager.getDefaultSensor(TYPE_ACCELEROMETER)
+        magnetometer = sensorManager.getDefaultSensor(TYPE_MAGNETIC_FIELD)
+
+        usersDBHelper = UsersDBHelper(this)
+
+//        myRef.setValue("hello,world")
+//        myRef.addValueEventListener(object : ValueEventListener {
+//            override fun onDataChange(dataSnapshot: DataSnapshot) {
+//                // This method is called once with the initial value and again
+//                // whenever data at this location is updated.
+//                val value = dataSnapshot.getValue<String>()
+//                Log.d(TAG, "Value is: $value")
+//            }
+//
+//            override fun onCancelled(error: DatabaseError) {
+//                // Failed to read value
+//                Log.w(TAG, "Failed to read value.", error.toException())
+//            }
+//        })
+
         cameraView.setLifecycleOwner(this)
         cameraView.addFrameProcessor {
             extractDataFromFrame(it) { result ->
                 tvDetectedObject.text = result
             }
+        }
+    }
+
+
+
+    override fun onResume() {
+        super.onResume()
+
+        sensorManager.registerListener(this, accelerometer, SENSOR_DELAY_GAME)
+        sensorManager.registerListener(this, magnetometer, SENSOR_DELAY_GAME)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        sensorManager.unregisterListener(this, accelerometer)
+        sensorManager.unregisterListener(this, magnetometer)
+    }
+
+
+
+     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
+     override fun onSensorChanged(event: SensorEvent) {
+        if (event.sensor === accelerometer) {
+            lowPass(event.values, lastAccelerometer)
+            lastAccelerometerSet = true
+        } else if (event.sensor === magnetometer) {
+            lowPass(event.values, lastMagnetometer)
+            lastMagnetometerSet = true
+        }
+
+        if (lastAccelerometerSet && lastMagnetometerSet) {
+            val r = FloatArray(9)
+            if (SensorManager.getRotationMatrix(r, null, lastAccelerometer, lastMagnetometer)) {
+                val orientation = FloatArray(3)
+                SensorManager.getOrientation(r, orientation)
+                val degree = (Math.toDegrees(orientation[0].toDouble()) + 360).toFloat() % 360
+
+
+                currentDegree = -degree
+                //Log.d("compass",currentDegree.toString())
+            }
+        }
+    }
+
+    fun lowPass(input: FloatArray, output: FloatArray) {
+        val alpha = 0.05f
+
+        for (i in input.indices) {
+            output[i] = output[i] + alpha * (input[i] - output[i])
         }
     }
 
@@ -65,10 +173,9 @@ class Camera: AppCompatActivity() {
                 .build()
 
 
-
-
         val objectDetector = FirebaseVision.getInstance().getOnDeviceObjectDetector(options)
         objectDetector.processImage(getVisionImageFromFrame(frame))
+        //objectDetector.processImage(getBitmapImg(frame))
                 .addOnSuccessListener {
                     var result = ""
                     it.forEach { item ->
@@ -79,30 +186,40 @@ class Camera: AppCompatActivity() {
                         left = bounding.left
                         right = bounding.right
                         top = bounding.top
-
-//                        val drawingView = DrawingView(getApplicationContext(), it)
-//                        drawingView.draw(Canvas(frame))
-//                        runOnUiThread { imageView.setImageBitmap(bitmap) }
-
                     }
                     if (result.equals("0"))
                         result = "Unknown"
                     if (result.equals("1"))
+                        //usersDBHelper.insertUser(UserModel(userid = result, name = result, age = result))
                         result = "Home Goods"
                     if (result.equals("2"))
+                        //usersDBHelper.insertUser(UserModel(userid = result, name = result, age = result))
                         result = "Fashion"
                     if (result.equals("3"))
+                        //usersDBHelper.insertUser(UserModel(userid = result, name = result, age = result))
                         result = "Food"
                     if (result.equals("4"))
+                        //usersDBHelper.insertUser(UserModel(userid = result, name = result, age = result))
                         result = "Place"
                     if (result.equals("5"))
+                        //usersDBHelper.insertUser(UserModel(userid = result, name = result, age = result))
                         result = "Plants"
+
+
+                    //user id is pos of object
+                    //name = result which is typ
+                    //age = object pos absolute extrapolated from distance from camera
+                    //will need to change this on update of new object which is not unknown
+
+                        Log.d("DB-Update","updating db - not unknown")
+
                     callback(result)
                 }
                 .addOnFailureListener {
                     callback("Unable to detect an object")
                 }
     }
+
 
 
     private fun getVisionImageFromFrame(frame : Frame) : FirebaseVisionImage{
@@ -123,86 +240,28 @@ class Camera: AppCompatActivity() {
         return image
     }
 
+
+    private fun getDistanceToObject(): Float{
+        var dist = 0F
+
+        return dist
+    }
+
+
+
 }
 
 
-/**
- * DrawingView class:
- *    onDraw() function implements drawing
- *     - boundingBox
- *     - Category
- *     - Confidence ( if Category is not CATEGORY_UNKNOWN )
- */
-class DrawingView(context: Context, var visionObjects: List<FirebaseVisionObject>) : View(context) {
 
-    companion object {
-        // mapping table for category to strings: drawing strings
-        val categoryNames: Map<Int, String> = mapOf(
-                FirebaseVisionObject.CATEGORY_UNKNOWN to "Unknown",
-                FirebaseVisionObject.CATEGORY_HOME_GOOD to "Home Goods",
-                FirebaseVisionObject.CATEGORY_FASHION_GOOD to "Fashion Goods",
-                FirebaseVisionObject.CATEGORY_FOOD to "Food",
-                FirebaseVisionObject.CATEGORY_PLACE to "Place",
-                FirebaseVisionObject.CATEGORY_PLANT to "Plant"
-        )
-    }
 
-    val MAX_FONT_SIZE = 96F
 
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        val pen = Paint()
-        pen.textAlign = Paint.Align.LEFT
 
-        for (item in visionObjects) {
-            // draw bounding box
-            pen.color = Color.RED
-            pen.strokeWidth = 8F
-            pen.style = Paint.Style.STROKE
-            val box = item.getBoundingBox()
-            canvas.drawRect(box, pen)
 
-            // Draw result category, and confidence
-            val tags: MutableList<String> = mutableListOf()
-            tags.add("Category: ${categoryNames[item.classificationCategory]}")
-            if (item.classificationCategory !=
-                    FirebaseVisionObject.CATEGORY_UNKNOWN) {
-                tags.add("Confidence: ${item.classificationConfidence!!.times(100).toInt()}%")
-            }
 
-            var tagSize = Rect(0, 0, 0, 0)
-            var maxLen = 0
-            var index: Int = -1
 
-            for ((idx, tag) in tags.withIndex()) {
-                if (maxLen < tag.length) {
-                    maxLen = tag.length
-                    index = idx
-                }
-            }
 
-            // calculate the right font size
-            pen.style = Paint.Style.FILL_AND_STROKE
-            pen.color = Color.YELLOW
-            pen.strokeWidth = 2F
 
-            pen.textSize = MAX_FONT_SIZE
-            pen.getTextBounds(tags[index], 0, tags[index].length, tagSize)
-            val fontSize: Float = pen.textSize * box.width() / tagSize.width()
 
-            // adjust the font size so texts are inside the bounding box
-            if (fontSize < pen.textSize) pen.textSize = fontSize
 
-            var margin = (box.width() - tagSize.width()) / 2.0F
-            if (margin < 0F)margin = 0F
 
-            // draw tags onto bitmap (bmp is in upside down format)
-            for ((idx, txt) in tags.withIndex()) {
-                canvas.drawText(
-                        txt, box.left + margin,
-                        box.top + tagSize.height().times(idx + 1.0F), pen
-                )
-            }
-        }
-    }
-}
+
