@@ -102,6 +102,10 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnCamera
             marker.snippet(point.id)
             mMap.addMarker(marker)
         }
+
+        if (!objects.isNullOrEmpty()){
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(20f), 2000, null);
+        }
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -119,6 +123,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnCamera
             Toast.makeText(this,"The user touched the map",Toast.LENGTH_LONG).show()
             changeType()
             }
+
 
         }
 

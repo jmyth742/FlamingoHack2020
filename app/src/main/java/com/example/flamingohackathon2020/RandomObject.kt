@@ -1,5 +1,6 @@
 package com.example.flamingohackathon2020
 
+import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import java.io.Serializable
 
 class RandomObject(lat:Double,lon:Double,type:String,ID:String,owner:String,height:Double): Serializable {
@@ -12,6 +13,8 @@ class RandomObject(lat:Double,lon:Double,type:String,ID:String,owner:String,heig
     var owner:String
 
     var height:Double
+
+    var foto:FirebaseVisionImage? = null
 
     init {
         this.latitude = lat
