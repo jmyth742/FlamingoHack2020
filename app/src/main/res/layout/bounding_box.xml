@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="100dp"
+    android:layout_height="100dp"
+    android:background="@drawable/rect_border"
+    android:id="@+id/boundingBox"
+    android:layout_x="200pt"
+    android:layout_y="300pt">
+
+</androidx.constraintlayout.widget.ConstraintLayout>

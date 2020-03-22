@@ -2,33 +2,29 @@ package com.example.flamingohackathon2020
 
 
 import android.Manifest
-import android.app.PendingIntent.getActivity
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
+import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata
-import com.google.firebase.ml.vision.objects.FirebaseVisionObject
 import com.google.firebase.ml.vision.objects.FirebaseVisionObjectDetectorOptions
 import com.otaliastudios.cameraview.Frame
 import flamingo.flamingo_api.FlamingoManager
 import flamingo.flamingo_api.utils.ReferenceStationStatus
 import kotlinx.android.synthetic.main.activity_camera.*
-import kotlinx.android.synthetic.main.activity_main.*
-
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.RectF
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.ShapeDrawable
-import android.graphics.drawable.shapes.RectShape
 import android.hardware.Sensor
 import android.hardware.Sensor.TYPE_ACCELEROMETER
 import android.hardware.Sensor.TYPE_MAGNETIC_FIELD
@@ -36,22 +32,25 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.hardware.SensorManager.SENSOR_DELAY_GAME
-import androidx.core.content.res.ResourcesCompat
-import kotlinx.android.synthetic.main.activity_camera.view.*
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
+import android.view.ViewGroup
+import kotlinx.android.synthetic.main.bounding_box.*
 
 
 class Camera:
         AppCompatActivity(), SensorEventListener {
 
+
+    val database = Firebase.database
+
+    val myRef = database.getReference("message")
+
     lateinit var sensorManager: SensorManager
     lateinit var accelerometer: Sensor
     lateinit var magnetometer: Sensor
 
-    lateinit var usersDBHelper: UsersDBHelper
-
-    var mHeight = 2248
-    var mWidth = 1080
-
+    lateinit var usersDBHelper : UsersDBHelper
 
     var currentDegree = 0.0f
     var lastAccelerometer = FloatArray(3)
@@ -68,14 +67,10 @@ class Camera:
 
     val requestCode = 123
 
-    val flamingoListener: GNSSListener = GNSSListener()
+    val flamingoListener:GNSSListener = GNSSListener()
     var flamingoManager:FlamingoManager? = null
 
-
-    private var bitmap: Bitmap = Bitmap.createBitmap(mWidth,mHeight,Bitmap.Config.ARGB_8888)
-    private val canvas: Canvas = Canvas(bitmap)
-
-
+    //lat: 52.52316261666667 lon: 13.422810166666666
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,31 +78,47 @@ class Camera:
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(TYPE_ACCELEROMETER)
         magnetometer = sensorManager.getDefaultSensor(TYPE_MAGNETIC_FIELD)
-        //var shapeDrawable: ShapeDrawable
+
+        usersDBHelper = UsersDBHelper(this)
+
+        //***********************************
+        // DYNAMIC BOUNDING BOX
+        boundingBox.x = 400f
+        boundingBox.y = 500f
+
+        var params = boundingBox.layoutParams;
+        params.height = 230
+        params.width = 20
+        boundingBox.setLayoutParams(params);
+        ///*************************************
 
 
-        cameraView.background = resources.getDrawable(R.drawable.rect_border)
         cameraView.setLifecycleOwner(this)
         cameraView.addFrameProcessor {
             extractDataFromFrame(it) { result ->
                 tvDetectedObject.text = result
             }
-
-
         }
 
+        setUpFlamingo()
+
+    }
+
+    fun setUpFlamingo(){
         //Flamingo
 
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
                 != PackageManager.PERMISSION_GRANTED) {
             // We do not have this permission. Let's ask the user
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_PHONE_STATE), 456);
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_PHONE_STATE),456);
         }
 
         ActivityCompat.requestPermissions(this,
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                 requestCode)
+
+
 
 
         val flamingoManager = FlamingoManager(this, arrayListOf(flamingoListener))
@@ -119,31 +130,27 @@ class Camera:
 
         flamingoManager.addFlamingoListener(flamingoListener)
 
-        flamingoManager.registerFlamingoService(applicationId, password, companyId, flamingoListener)
+        flamingoManager.registerFlamingoService(applicationId, password, companyId,flamingoListener)
 
-        Log.v(TAG, flamingoManager.positioningSession.toString())
+        Log.v(TAG,flamingoManager.positioningSession.toString())
 
 
         Log.v(TAG, "FLAMINGO REFERENCE STATION STATUS -> " + flamingoManager.referenceStationStatus.toString())
         Log.v(TAG, "FLAMINGO REGISTRATION STATION STATUS -> " + flamingoManager.registrationStatus.toString())
 
         var counter = 0
-        while (flamingoManager.referenceStationStatus != ReferenceStationStatus.AVAILABLE && counter < 10) {
-            Log.v(TAG, "repeat")
-            flamingoManager.registerFlamingoService(applicationId, password, companyId, flamingoListener)
+        while (flamingoManager.referenceStationStatus != ReferenceStationStatus.AVAILABLE && counter < 10){
+            Log.v(TAG,"repeat")
+            flamingoManager.registerFlamingoService(applicationId, password, companyId,flamingoListener)
             Thread.sleep(500)
             counter += 1
         }
 
         //test the distance
-        val new_coordinates = CoordinateFinder(52.52316261666667, 13.422810166666666).newCoordinate(0.0, 0.01)
-        Log.v(TAG, "NEW COORDINATES -> " + new_coordinates.toString())
+        val new_coordinates = CoordinateFinder(52.52316261666667,13.422810166666666).newCoordinate(0.0,0.01)
+        Log.v(TAG,"NEW COORDINATES -> " + new_coordinates.toString())
         this.flamingoManager = flamingoManager
 
-    }
-
-    fun setLabelText(text: String) {
-        compass.text = text
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -153,7 +160,7 @@ class Camera:
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
-                    Log.d(TAG, "FINE LOCATION PERMISSION GRANTED")
+                    Log.d(TAG,"FINE LOCATION PERMISSION GRANTED")
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
@@ -166,7 +173,7 @@ class Camera:
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
-                    Log.d(TAG, "READ PHONE STATE PERMISSION GRANTED")
+                    Log.d(TAG,"READ PHONE STATE PERMISSION GRANTED")
                 } else {
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
@@ -182,7 +189,6 @@ class Camera:
         }
     }
 
-
     override fun onResume() {
         super.onResume()
 
@@ -197,9 +203,10 @@ class Camera:
     }
 
 
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
-    override fun onSensorChanged(event: SensorEvent) {
+     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+
+     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor === accelerometer) {
             lowPass(event.values, lastAccelerometer)
             lastAccelerometerSet = true
@@ -230,7 +237,7 @@ class Camera:
         }
     }
 
-    private fun extractDataFromFrame(frame: Frame, callback: (String) -> Unit) {
+    private fun extractDataFromFrame(frame:Frame, callback: (String) -> Unit) {
 
         val options = FirebaseVisionObjectDetectorOptions.Builder()
                 .setDetectorMode(FirebaseVisionObjectDetectorOptions.STREAM_MODE)
@@ -241,7 +248,7 @@ class Camera:
 
         val objectDetector = FirebaseVision.getInstance().getOnDeviceObjectDetector(options)
         objectDetector.processImage(getVisionImageFromFrame(frame))
-                //objectDetector.processImage(getBitmapImg(frame))
+        //objectDetector.processImage(getBitmapImg(frame))
                 .addOnSuccessListener {
                     var result = ""
                     it.forEach { item ->
@@ -281,8 +288,7 @@ class Camera:
 
 
 
-
-    private fun getVisionImageFromFrame(frame: Frame): FirebaseVisionImage {
+    private fun getVisionImageFromFrame(frame : Frame) : FirebaseVisionImage{
         //ByteArray for the captured frame
         val data = frame.data
 

@@ -17,11 +17,13 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import flamingo.flamingo_api.FlamingoLocationListener
 import flamingo.flamingo_api.FlamingoManager
 import flamingo.flamingo_api.utils.ReferenceStationStatus
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnCameraMoveListener {
+
 
     private lateinit var mMap: GoogleMap
     var tracker:GNSSListener = GNSSListener()
@@ -39,6 +41,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnCamera
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
 
 
     }
@@ -92,7 +95,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnCamera
         tracker.map = mMap
         tracker.mContext = this
 
-        //Flamingo
         setUpFlamingo()
 
         // Add a marker in Sydney and move the camera
