@@ -37,6 +37,7 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.hardware.SensorManager.SENSOR_DELAY_GAME
 import androidx.core.content.res.ResourcesCompat
+import kotlinx.android.synthetic.main.activity_camera.view.*
 
 
 class Camera:
@@ -85,12 +86,14 @@ class Camera:
         //var shapeDrawable: ShapeDrawable
 
 
-
+        cameraView.background = resources.getDrawable(R.drawable.rect_border)
         cameraView.setLifecycleOwner(this)
         cameraView.addFrameProcessor {
             extractDataFromFrame(it) { result ->
                 tvDetectedObject.text = result
             }
+
+
         }
 
         //Flamingo

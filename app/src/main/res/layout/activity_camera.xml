@@ -19,6 +19,7 @@
 
     </com.otaliastudios.cameraview.CameraView>
 
+
     <TextView
         android:textColor="#fff"
         android:textStyle="bold"
