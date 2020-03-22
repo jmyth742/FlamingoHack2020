@@ -2,21 +2,21 @@ package com.example.flamingohackathon2020
 
 
 import android.Manifest
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
-import android.hardware.Sensor
-import android.hardware.Sensor.TYPE_ACCELEROMETER
-import android.hardware.Sensor.TYPE_MAGNETIC_FIELD
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
-import android.hardware.SensorManager.SENSOR_DELAY_GAME
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
+import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata
@@ -25,8 +25,17 @@ import com.otaliastudios.cameraview.Frame
 import flamingo.flamingo_api.FlamingoManager
 import flamingo.flamingo_api.utils.ReferenceStationStatus
 import kotlinx.android.synthetic.main.activity_camera.*
+import android.hardware.Sensor
+import android.hardware.Sensor.TYPE_ACCELEROMETER
+import android.hardware.Sensor.TYPE_MAGNETIC_FIELD
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import android.hardware.SensorManager.SENSOR_DELAY_GAME
+import android.view.ViewGroup
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import kotlinx.android.synthetic.main.bounding_box.*
-
 
 class Camera:
         AppCompatActivity(), SensorEventListener {
@@ -47,6 +56,8 @@ class Camera:
     var lastMagnetometer = FloatArray(3)
     var lastAccelerometerSet = false
     var lastMagnetometerSet = false
+
+    var objects:MutableList<RandomObject> = mutableListOf()
 
     var TAG: String = "Flamingo"
     var bottom = 0
@@ -74,18 +85,33 @@ class Camera:
         accelerometer = sensorManager.getDefaultSensor(TYPE_ACCELEROMETER)
         magnetometer = sensorManager.getDefaultSensor(TYPE_MAGNETIC_FIELD)
 
-        var params = boundingBox.layoutParams;
+        this.objects = (intent.getSerializableExtra("list") as? Array<RandomObject>)?.toMutableList() ?: mutableListOf()
 
         //***********************************
         // DYNAMIC BOUNDING BOX
         boundingBox.x = 400f
         boundingBox.y = 500f
 
-        params.height = 1
-        params.width = 1
+        var params = boundingBox.layoutParams;
+        params.height = 230
+        params.width = 20
         boundingBox.setLayoutParams(params);
         ///*************************************
 
+//        myRef.setValue("hello,world")
+//        myRef.addValueEventListener(object : ValueEventListener {
+//            override fun onDataChange(dataSnapshot: DataSnapshot) {
+//                // This method is called once with the initial value and again
+//                // whenever data at this location is updated.
+//                val value = dataSnapshot.getValue<String>()
+//                Log.d(TAG, "Value is: $value")
+//            }
+//
+//            override fun onCancelled(error: DatabaseError) {
+//                // Failed to read value
+//                Log.w(TAG, "Failed to read value.", error.toException())
+//            }
+//        })
 
         cameraView.setLifecycleOwner(this)
         cameraView.addFrameProcessor {
@@ -153,7 +179,6 @@ class Camera:
         val new_coordinates = CoordinateFinder(52.52316261666667,13.422810166666666).newCoordinate(0.0,0.01)
         Log.v(TAG,"NEW COORDINATES -> " + new_coordinates.toString())
         this.flamingoManager = flamingoManager
-
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -288,18 +313,7 @@ class Camera:
                 }
     }
 
-//private fun updateBox(){
-//
-//    boundingBox.x = top.toFloat()
-//    boundingBox.y = left.toFloat()
-//
-//    params.height = width
-//    params.width = height
-//
-//    boundingBox.setLayoutParams(params);
-//
-//
-//}
+
 
     private fun getVisionImageFromFrame(frame : Frame) : FirebaseVisionImage{
         //ByteArray for the captured frame
@@ -318,6 +332,18 @@ class Camera:
 
         return image
     }
+
+
+
+
+    fun switchView(view:View){
+        val intent = Intent(this, MapsActivity::class.java)
+        this.flamingoManager?.stopFlamingoService()
+        startActivity(intent)
+
+    }
+
+
 
 
 }
