@@ -120,9 +120,13 @@ class Camera:
                 boundingBox.x = top.toFloat()
                 boundingBox.y = left.toFloat()
 
-                params.height = -width
-                params.width = -height
+                params.height = -height
+                params.width = -width
                 Log.d("dims", "dims " + -width+ -height)
+                if (result.equals("Unknown")){
+                    params.height = 0
+                    params.width = 0
+                }
 
                 boundingBox.layoutParams = params;
 
