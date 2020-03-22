@@ -2,21 +2,21 @@ package com.example.flamingohackathon2020
 
 
 import android.Manifest
-import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
+import android.hardware.Sensor
+import android.hardware.Sensor.TYPE_ACCELEROMETER
+import android.hardware.Sensor.TYPE_MAGNETIC_FIELD
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import android.hardware.SensorManager.SENSOR_DELAY_GAME
 import android.os.Bundle
-import android.os.Looper
 import android.util.Log
-import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.firebase.database.ktx.database
+import com.google.firebase.ktx.Firebase
 import com.google.firebase.ml.vision.FirebaseVision
 import com.google.firebase.ml.vision.common.FirebaseVisionImage
 import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata
@@ -25,16 +25,6 @@ import com.otaliastudios.cameraview.Frame
 import flamingo.flamingo_api.FlamingoManager
 import flamingo.flamingo_api.utils.ReferenceStationStatus
 import kotlinx.android.synthetic.main.activity_camera.*
-import android.hardware.Sensor
-import android.hardware.Sensor.TYPE_ACCELEROMETER
-import android.hardware.Sensor.TYPE_MAGNETIC_FIELD
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
-import android.hardware.SensorManager.SENSOR_DELAY_GAME
-import com.google.firebase.database.ktx.database
-import com.google.firebase.ktx.Firebase
-import android.view.ViewGroup
 import kotlinx.android.synthetic.main.bounding_box.*
 
 
@@ -70,6 +60,11 @@ class Camera:
     val flamingoListener:GNSSListener = GNSSListener()
     var flamingoManager:FlamingoManager? = null
 
+    var width = 0
+    var height = 0
+
+
+
     //lat: 52.52316261666667 lon: 13.422810166666666
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -79,16 +74,15 @@ class Camera:
         accelerometer = sensorManager.getDefaultSensor(TYPE_ACCELEROMETER)
         magnetometer = sensorManager.getDefaultSensor(TYPE_MAGNETIC_FIELD)
 
-        usersDBHelper = UsersDBHelper(this)
+        var params = boundingBox.layoutParams;
 
         //***********************************
         // DYNAMIC BOUNDING BOX
         boundingBox.x = 400f
         boundingBox.y = 500f
 
-        var params = boundingBox.layoutParams;
-        params.height = 230
-        params.width = 20
+        params.height = 1
+        params.width = 1
         boundingBox.setLayoutParams(params);
         ///*************************************
 
@@ -97,6 +91,15 @@ class Camera:
         cameraView.addFrameProcessor {
             extractDataFromFrame(it) { result ->
                 tvDetectedObject.text = result
+                boundingBox.x = top.toFloat()
+                boundingBox.y = left.toFloat()
+
+                params.height = -width
+                params.width = -height
+                Log.d("dims", "dims " + -width+ -height)
+
+                boundingBox.layoutParams = params;
+
             }
         }
 
@@ -260,11 +263,10 @@ class Camera:
                         right = bounding.right
                         top = bounding.top
 
-                        var width = left - right
-                        var height = top - bottom
-                        cameraView.background = resources.getDrawable(R.drawable.rect_border)
-                        //cameraView.background = ResourcesCompat.getDrawable(getResources(), R.drawable.rect_border, null);
-                        Log.d("image dims", " " + width + " " + height)
+                        width = left - right
+                        height = top - bottom
+//                        runOnUiThread { updateBox() }
+
                     }
                     if (result.equals("0"))
                         result = "Unknown"
@@ -286,7 +288,18 @@ class Camera:
                 }
     }
 
-
+//private fun updateBox(){
+//
+//    boundingBox.x = top.toFloat()
+//    boundingBox.y = left.toFloat()
+//
+//    params.height = width
+//    params.width = height
+//
+//    boundingBox.setLayoutParams(params);
+//
+//
+//}
 
     private fun getVisionImageFromFrame(frame : Frame) : FirebaseVisionImage{
         //ByteArray for the captured frame
