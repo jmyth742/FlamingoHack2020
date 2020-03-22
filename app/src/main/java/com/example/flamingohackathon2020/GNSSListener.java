@@ -21,14 +21,12 @@ public class GNSSListener extends AppCompatActivity implements FlamingoLocationL
     @Override
     public void registerFlamingoLocationListener() {
 
-        mContext.setLabelText("registered");
         Log.v("Flamingo","registered");
     }
 
     @Override
     public void unregisterFlamingoLocationListener() {
 
-        mContext.setLabelText("unregistered");
         Log.v("Flamingo","unregistered");
 
     }
@@ -45,7 +43,7 @@ public class GNSSListener extends AppCompatActivity implements FlamingoLocationL
 
     @Override
     public void onReferenceStationStatusChanged(ReferenceStationStatus referenceStationStatus) {
-        mContext.setLabelText("status changed");
+
     }
 
     public Pair<Double, Double> getLocation(){
@@ -54,13 +52,12 @@ public class GNSSListener extends AppCompatActivity implements FlamingoLocationL
             locationReady = false;
             String text = "new pair of location data lat: " + latitude + " lon: " + longitude;
             Log.v("Flamingo",text);
-            mContext.setLabelText(text);
             return new Pair<>(latitude,longitude);
         }
         else{
             String text = "No new pair of location data available";
                     Log.v("Flamingo",text);
-            mContext.setLabelText(text);
+
         }
 
         return new Pair<>(0.0,0.0);

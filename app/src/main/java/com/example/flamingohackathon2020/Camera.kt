@@ -42,6 +42,8 @@ class Camera: AppCompatActivity() {
 
     val flamingoListener:GNSSListener = GNSSListener()
 
+    //lat: 52.52316261666667 lon: 13.422810166666666
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_camera)
@@ -85,11 +87,17 @@ class Camera: AppCompatActivity() {
         Log.v(TAG, "FLAMINGO REFERENCE STATION STATUS -> " + flamingoManager.referenceStationStatus.toString())
         Log.v(TAG, "FLAMINGO REGISTRATION STATION STATUS -> " + flamingoManager.registrationStatus.toString())
 
-        while (flamingoManager.referenceStationStatus != ReferenceStationStatus.AVAILABLE){
+        var counter = 0
+        while (flamingoManager.referenceStationStatus != ReferenceStationStatus.AVAILABLE && counter < 10){
             Log.v(TAG,"repeat")
             flamingoManager.registerFlamingoService(applicationId, password, companyId,flamingoListener)
             Thread.sleep(500)
+            counter += 1
         }
+
+        //test the distance
+        val new_coordinates = CoordinateFinder(52.52316261666667,13.422810166666666).newCoordinate(0.0,0.01)
+        Log.v(TAG,"NEW COORDINATES -> " + new_coordinates.toString())
 
     }
 
