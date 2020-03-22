@@ -2,6 +2,7 @@ package com.example.flamingohackathon2020
 
 
 import android.Manifest
+import android.app.PendingIntent.getActivity
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
@@ -35,6 +36,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.hardware.SensorManager.SENSOR_DELAY_GAME
+import androidx.core.content.res.ResourcesCompat
 
 
 class Camera:
@@ -80,7 +82,7 @@ class Camera:
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(TYPE_ACCELEROMETER)
         magnetometer = sensorManager.getDefaultSensor(TYPE_MAGNETIC_FIELD)
-        var shapeDrawable: ShapeDrawable
+        //var shapeDrawable: ShapeDrawable
 
 
 
@@ -250,6 +252,8 @@ class Camera:
 
                         var width = left - right
                         var height = top - bottom
+                        cameraView.background = resources.getDrawable(R.drawable.rect_border)
+                        //cameraView.background = ResourcesCompat.getDrawable(getResources(), R.drawable.rect_border, null);
                         Log.d("image dims", " " + width + " " + height)
                     }
                     if (result.equals("0"))
